@@ -1,0 +1,1199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>PINTLABS — Stories, AI Engineered</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Fraunces:ital,opsz,wght@1,144,300..900&display=swap" rel="stylesheet">
+
+<!-- GSAP + ScrollTrigger + Lenis -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+
+<!-- React + Babel (for Tweaks panel) -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<style>
+/* ─── RESET + BASE ─────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#000;color:#e5e2e1}
+html{scroll-behavior:auto;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{
+  font-family:'Montserrat',sans-serif;
+  font-weight:400;
+  overflow-x:hidden;
+  selection-bg:#fff;
+  cursor:none;
+}
+::selection{background:#fff;color:#000}
+img{display:block;max-width:100%}
+button{font:inherit;cursor:none;background:none;border:none;color:inherit}
+a{color:inherit;text-decoration:none;cursor:none}
+
+:root{
+  --bg:#000;
+  --ink:#e5e2e1;
+  --dim:#a3a3a6;
+  --faint:#47464a;
+  --line:rgba(255,255,255,.08);
+  --magenta:#d354ae;
+  --noir-900:#0e0e10;
+  --noir-800:#141313;
+  --noir-700:#1c1b1b;
+  --noir-500:#2b2a2a;
+  --mono:'JetBrains Mono',monospace;
+  --display:'Montserrat',sans-serif;
+  --serif:'Fraunces',serif;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+
+/* ─── CUSTOM CURSOR ────────────────────────────────────────────────── */
+.cursor{
+  position:fixed;top:0;left:0;width:10px;height:10px;border-radius:50%;
+  background:#fff;pointer-events:none;z-index:9999;mix-blend-mode:difference;
+  transform:translate(-50%,-50%);transition:transform .3s var(--ease),width .3s var(--ease),height .3s var(--ease);
+}
+.cursor.is-hover{width:48px;height:48px;background:#fff}
+.cursor-ring{
+  position:fixed;top:0;left:0;width:36px;height:36px;border:1px solid rgba(255,255,255,.35);
+  border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);
+  transition:opacity .3s var(--ease),transform .12s linear;
+}
+
+/* ─── FILM GRAIN OVERLAY ───────────────────────────────────────────── */
+.grain{
+  position:fixed;inset:-150% -150%;width:300%;height:300%;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity:.055;pointer-events:none;z-index:9000;animation:grain 1s steps(4) infinite;
+}
+@keyframes grain{
+  0%,100%{transform:translate(0,0)}10%{transform:translate(-1%,-1%)}
+  30%{transform:translate(-2%,1%)}50%{transform:translate(1%,2%)}
+  70%{transform:translate(2%,1%)}90%{transform:translate(-1%,2%)}
+}
+
+/* ─── NAV ──────────────────────────────────────────────────────────── */
+.nav{
+  position:fixed;top:0;left:0;width:100%;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:22px 32px;
+  mix-blend-mode:difference;
+  color:#fff;
+}
+.nav-brand{
+  font-family:var(--display);font-weight:900;font-size:11px;letter-spacing:.32em;
+}
+.nav-links{display:flex;gap:36px}
+.nav-link{
+  font-family:var(--mono);font-size:10px;letter-spacing:.25em;text-transform:uppercase;
+  color:rgba(255,255,255,.7);position:relative;padding:6px 0;
+  transition:color .3s var(--ease);
+}
+.nav-link::after{
+  content:"";position:absolute;left:0;bottom:0;width:0;height:1px;background:#fff;
+  transition:width .4s var(--ease);
+}
+.nav-link:hover{color:#fff}
+.nav-link:hover::after{width:100%}
+.nav-meta{
+  font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:rgba(255,255,255,.55);
+  display:flex;align-items:center;gap:8px;
+}
+.nav-meta .dot{width:6px;height:6px;border-radius:50%;background:var(--magenta);box-shadow:0 0 8px var(--magenta);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ─── HERO ─────────────────────────────────────────────────────────── */
+.hero{
+  position:relative;height:100vh;width:100%;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.hero-video-stage{position:absolute;inset:0;overflow:hidden}
+.hero-video{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  opacity:0;transition:opacity 1.2s var(--ease);
+  transform:scale(1.05);
+  will-change:transform,opacity;
+}
+.hero-video.is-active{opacity:1}
+.hero-tint{position:absolute;inset:0;background:rgba(0,0,0,.55);pointer-events:none}
+.hero-vignette{
+  position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 90% 90% at 50% 50%,transparent 35%,rgba(0,0,0,.6) 100%);
+}
+.hero-top-fade{position:absolute;left:0;right:0;top:0;height:180px;background:linear-gradient(to bottom,rgba(0,0,0,.75),transparent);pointer-events:none}
+.hero-bottom-fade{position:absolute;left:0;right:0;bottom:0;height:35%;background:linear-gradient(to top,rgba(0,0,0,.85),transparent);pointer-events:none}
+
+.hero-content{
+  position:relative;z-index:5;display:flex;flex-direction:column;align-items:center;gap:24px;padding:0 24px;text-align:center;
+}
+
+.hero-tagtop{
+  font-family:var(--mono);font-size:10px;letter-spacing:.4em;color:rgba(255,255,255,.55);
+  text-transform:uppercase;display:flex;align-items:center;gap:14px;
+}
+.hero-tagtop .line{width:36px;height:1px;background:rgba(255,255,255,.4)}
+
+.hero-title{
+  font-family:var(--display);font-weight:900;
+  font-size:clamp(72px,18vw,260px);
+  letter-spacing:-.04em;line-height:.9;
+  text-transform:uppercase;color:#fff;
+  text-shadow:0 0 80px rgba(255,255,255,.1),0 2px 40px rgba(0,0,0,.8);
+  display:flex;overflow:hidden;
+}
+.hero-title .ch{
+  display:inline-block;transform:translateY(110%);
+  will-change:transform;
+}
+
+.hero-italic{
+  font-family:var(--serif);font-style:italic;font-weight:300;
+  font-size:clamp(20px,3vw,42px);letter-spacing:-.01em;color:rgba(255,255,255,.85);
+  margin-top:-12px;
+}
+.hero-italic .word{display:inline-block;overflow:hidden;vertical-align:bottom}
+.hero-italic .word span{display:inline-block;transform:translateY(110%);will-change:transform}
+
+.hero-foot{
+  position:absolute;left:32px;right:32px;bottom:28px;z-index:5;
+  display:flex;justify-content:space-between;align-items:flex-end;color:rgba(255,255,255,.7);
+}
+.hero-foot-block{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;line-height:1.7}
+.hero-foot-block b{color:#fff;font-weight:700;display:block;letter-spacing:.18em}
+.hero-scroll{display:flex;flex-direction:column;align-items:center;gap:10px;font-family:var(--mono);font-size:9px;letter-spacing:.35em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+.hero-scroll .bar{width:1px;height:36px;background:linear-gradient(to bottom,rgba(255,255,255,.6),transparent);animation:scrollbar 1.8s infinite var(--ease)}
+@keyframes scrollbar{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+.hero-scenes{
+  position:absolute;left:32px;top:50%;transform:translateY(-50%);z-index:5;
+  display:flex;flex-direction:column;gap:14px;
+}
+.hero-scenes .dot-row{display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.45);font-family:var(--mono);font-size:9px;letter-spacing:.22em;text-transform:uppercase;transition:color .3s var(--ease)}
+.hero-scenes .dot-row .d{width:8px;height:1px;background:rgba(255,255,255,.3);transition:all .4s var(--ease)}
+.hero-scenes .dot-row.is-active{color:#fff}
+.hero-scenes .dot-row.is-active .d{width:24px;background:#fff}
+
+/* ─── MARQUEE ──────────────────────────────────────────────────────── */
+.marquee{
+  position:relative;width:100%;overflow:hidden;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  padding:26px 0;background:#000;
+}
+.marquee-track{
+  display:flex;gap:60px;white-space:nowrap;width:max-content;
+  will-change:transform;
+  font-family:var(--display);font-weight:900;font-size:clamp(40px,7vw,96px);
+  letter-spacing:-.03em;text-transform:uppercase;line-height:1;
+}
+.marquee-item{display:flex;align-items:center;gap:60px;color:#fff}
+.marquee-item .star{
+  width:.7em;height:.7em;display:inline-block;
+  color:var(--magenta);
+}
+.marquee-item .outline{
+  -webkit-text-stroke:1px rgba(255,255,255,.5);color:transparent;
+}
+
+/* Reverse marquee variant */
+.marquee.rev .marquee-track{font-size:clamp(28px,4.5vw,60px)}
+.marquee.rev{padding:18px 0;border:none}
+
+/* ─── SECTION SHELL ────────────────────────────────────────────────── */
+section{position:relative;width:100%}
+.wrap{max-width:1400px;margin:0 auto;padding:0 32px}
+.section-pad{padding:80px 0 80px}
+.eyebrow{
+  font-family:var(--mono);font-size:10px;letter-spacing:.32em;text-transform:uppercase;
+  color:var(--magenta);display:flex;align-items:center;gap:14px;margin-bottom:24px;
+}
+.eyebrow .l{width:48px;height:1px;background:var(--magenta);opacity:.6}
+.eyebrow .num{color:rgba(255,255,255,.4);font-family:var(--mono)}
+
+.section-title{
+  font-family:var(--display);font-weight:900;
+  font-size:clamp(48px,10vw,140px);
+  letter-spacing:-.04em;line-height:.9;text-transform:uppercase;
+  margin-bottom:18px;color:#fff;
+}
+.section-title .w{display:inline-block;overflow:hidden;vertical-align:bottom;padding-right:.15em}
+.section-title .w span{display:inline-block;transform:translateY(110%);will-change:transform}
+.section-title .ital{font-family:var(--serif);font-style:italic;font-weight:300}
+.section-title .stroke{-webkit-text-stroke:1px rgba(255,255,255,.6);color:transparent}
+
+/* ─── WHAT WE DO ───────────────────────────────────────────────────── */
+.services-head{
+  display:grid;grid-template-columns:1fr 320px;gap:48px;align-items:end;margin-bottom:80px;
+}
+.services-intro{
+  font-family:var(--display);font-weight:300;font-size:16px;line-height:1.6;
+  color:rgba(255,255,255,.7);max-width:340px;text-align:right;
+}
+.services-list{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.service{
+  position:relative;display:grid;grid-template-columns:80px 1fr 1fr 80px;gap:32px;
+  align-items:center;padding:64px 0;border-bottom:1px solid var(--line);
+  min-height:200px;
+  transition:padding .5s var(--ease);
+  overflow:hidden;
+}
+.service .num{font-family:var(--mono);font-size:11px;color:var(--magenta);letter-spacing:.2em}
+.service h3{
+  font-family:var(--display);font-weight:900;font-size:clamp(28px,4.5vw,64px);
+  letter-spacing:-.03em;text-transform:uppercase;line-height:1;color:#fff;
+  transition:transform .6s var(--ease),color .4s var(--ease);
+}
+.service h3 .ital{font-family:var(--serif);font-style:italic;font-weight:300;color:rgba(255,255,255,.85)}
+.service p{
+  font-family:var(--display);font-weight:300;font-size:14px;line-height:1.6;color:rgba(255,255,255,.55);
+  max-width:340px;
+}
+.service .arrow{
+  width:48px;height:48px;border:1px solid var(--line);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.6);
+  transition:all .5s var(--ease);justify-self:end;
+}
+.service .arrow svg{width:14px;height:14px;transition:transform .5s var(--ease)}
+
+.service-bg{
+  position:absolute;inset:0;z-index:-1;opacity:0;pointer-events:none;
+  background-size:cover;background-position:center;
+  transition:opacity .6s var(--ease);
+  filter:saturate(.8) brightness(.4);
+}
+.service::before{
+  content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(0,0,0,.85),rgba(0,0,0,.3) 60%,rgba(0,0,0,.6));
+  opacity:0;transition:opacity .6s var(--ease);
+}
+.service:hover{padding:96px 32px}
+.service:hover .service-bg,.service:hover::before{opacity:1}
+.service:hover h3{color:var(--magenta)}
+.service:hover .arrow{background:var(--magenta);border-color:var(--magenta);color:#000;transform:scale(1.1)}
+.service:hover .arrow svg{transform:rotate(45deg)}
+
+/* ─── OUR WORK (horizontal scroll) ─────────────────────────────────── */
+.work{position:relative;background:#000;overflow:hidden}
+.work-head{padding:140px 0 80px}
+.work-pin{height:100vh;display:flex;align-items:center;overflow:hidden}
+.work-track{display:flex;gap:32px;padding:0 8vw;will-change:transform}
+.work-card{
+  position:relative;flex-shrink:0;width:62vw;max-width:920px;aspect-ratio:16/9;
+  background:#0a0a0b;overflow:hidden;border:1px solid var(--line);
+}
+.work-card:nth-child(odd){width:46vw;max-width:680px;aspect-ratio:4/5}
+.work-card img,.work-card video{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  transition:transform 1.2s var(--ease),opacity 1s var(--ease);
+}
+.work-card video{opacity:0}
+.work-card:hover video{opacity:1}
+.work-card:hover img{opacity:.15;transform:scale(1.05)}
+.work-card .grad{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.85),transparent 50%);pointer-events:none}
+.work-card .badge{
+  position:absolute;top:20px;left:20px;
+  font-family:var(--mono);font-size:9px;letter-spacing:.25em;text-transform:uppercase;
+  background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.12);padding:6px 10px;
+  color:#fff;
+}
+.work-card .meta{
+  position:absolute;left:24px;right:24px;bottom:24px;
+  display:flex;justify-content:space-between;align-items:flex-end;
+}
+.work-card h4{
+  font-family:var(--display);font-weight:900;font-size:clamp(18px,1.6vw,28px);
+  text-transform:uppercase;letter-spacing:-.01em;color:#fff;line-height:1;max-width:75%;
+}
+.work-card .yr{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.5);letter-spacing:.18em}
+
+.work-prog{
+  position:absolute;left:0;bottom:0;width:100%;padding:32px 8vw;display:flex;gap:32px;align-items:center;
+  font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.5);
+}
+.work-prog .bar{flex:1;height:1px;background:rgba(255,255,255,.15);overflow:hidden;position:relative}
+.work-prog .bar::after{content:"";position:absolute;left:0;top:0;height:100%;width:var(--p,0%);background:var(--magenta);transition:width .2s linear}
+
+/* ─── ABOUT ────────────────────────────────────────────────────────── */
+.about{padding:80px 0 100px;background:#000;position:relative;overflow:hidden}
+.about-wrap{max-width:1400px;margin:0 auto;padding:0 32px}
+.about-h{
+  font-family:var(--display);font-weight:900;
+  font-size:clamp(40px,8vw,120px);
+  letter-spacing:-.04em;line-height:.92;text-transform:uppercase;color:#fff;
+  margin-bottom:60px;
+}
+.about-h .ital{font-family:var(--serif);font-style:italic;font-weight:300}
+.about-h .stroke{-webkit-text-stroke:1px rgba(255,255,255,.5);color:transparent}
+
+.about-body{
+  font-family:var(--display);font-weight:300;
+  font-size:clamp(20px,2.4vw,32px);line-height:1.35;letter-spacing:-.01em;
+  max-width:1100px;color:#444;
+}
+.about-body .word{display:inline-block;margin-right:.18em;transition:color .8s var(--ease);will-change:color}
+.about-body .word.lit{color:#fff}
+.about-body .word.ital{font-family:var(--serif);font-style:italic;color:rgba(255,255,255,.85)}
+
+.about-stats{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:80px;
+  border-top:1px solid var(--line);padding-top:48px;
+}
+.stat .n{font-family:var(--display);font-weight:900;font-size:clamp(40px,5vw,72px);letter-spacing:-.04em;color:#fff;line-height:1}
+.stat .l{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);margin-top:14px}
+
+/* ─── CONTACT ──────────────────────────────────────────────────────── */
+.contact{padding:80px 0 60px;background:#000;position:relative;overflow:hidden}
+.contact-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:80px;align-items:start}
+@media (max-width:920px){.contact-grid{grid-template-columns:1fr}}
+
+.contact-h{
+  font-family:var(--display);font-weight:900;
+  font-size:clamp(48px,8vw,140px);letter-spacing:-.04em;line-height:.9;text-transform:uppercase;color:#fff;
+  margin-bottom:32px;
+}
+.contact-h .ital{font-family:var(--serif);font-style:italic;font-weight:300}
+.contact-sub{font-family:var(--display);font-weight:300;font-size:16px;line-height:1.6;color:rgba(255,255,255,.6);max-width:480px;margin-bottom:48px}
+
+.contact-channels{display:flex;flex-direction:column;gap:24px;margin-top:48px;border-top:1px solid var(--line);padding-top:36px}
+.channel{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);transition:padding .4s var(--ease)}
+.channel:hover{padding:14px 16px}
+.channel .k{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim)}
+.channel .v{font-family:var(--display);font-weight:500;font-size:18px;color:#fff;transition:color .3s var(--ease)}
+.channel:hover .v{color:var(--magenta)}
+
+.contact-direct{margin-top:24px;border-top:1px solid var(--line);padding-top:36px}
+.contact-direct-link{
+  display:flex;align-items:center;gap:24px;padding:28px 0;border-bottom:1px solid var(--line);
+  transition:padding .4s var(--ease),border-color .3s var(--ease);
+}
+.contact-direct-link:hover{padding:28px 18px;border-color:var(--magenta)}
+.contact-direct-link .k{
+  font-family:var(--mono);font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--dim);
+  flex-shrink:0;width:120px;
+}
+.contact-direct-link .v{
+  font-family:var(--display);font-weight:700;
+  font-size:clamp(28px,4vw,52px);letter-spacing:-.02em;color:#fff;
+  transition:color .3s var(--ease);flex:1;
+  text-transform:none;
+}
+.contact-direct-link:hover .v{color:var(--magenta)}
+.contact-direct-arrow{
+  width:28px;height:28px;color:rgba(255,255,255,.55);flex-shrink:0;
+  transition:transform .5s var(--ease),color .3s var(--ease);
+}
+.contact-direct-link:hover .contact-direct-arrow{transform:rotate(-45deg) translateX(4px);color:var(--magenta)}
+
+.form{display:flex;flex-direction:column;gap:24px}
+.field{display:flex;flex-direction:column;gap:8px}
+.field label{font-family:var(--mono);font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--dim)}
+.field input,.field textarea{
+  background:transparent;border:none;border-bottom:1px solid var(--line);
+  font-family:var(--display);font-weight:400;font-size:15px;color:#fff;padding:12px 0;
+  outline:none;transition:border-color .3s var(--ease);
+  resize:none;cursor:none;
+}
+.field input:focus,.field textarea:focus{border-color:var(--magenta)}
+.field input::placeholder,.field textarea::placeholder{color:rgba(255,255,255,.25)}
+
+.submit{
+  margin-top:16px;align-self:flex-start;
+  display:inline-flex;align-items:center;gap:14px;
+  padding:18px 28px;background:#fff;color:#000;
+  font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.25em;text-transform:uppercase;
+  border-radius:999px;
+  transition:transform .4s var(--ease),background .3s var(--ease),color .3s var(--ease);
+  position:relative;overflow:hidden;
+}
+.submit:hover{background:var(--magenta);color:#000;transform:translateX(6px)}
+.submit svg{width:14px;height:14px;transition:transform .4s var(--ease)}
+.submit:hover svg{transform:rotate(-45deg)}
+
+/* ─── FOOTER ───────────────────────────────────────────────────────── */
+.footer{
+  background:#000;border-top:1px solid var(--line);padding:60px 0 32px;position:relative;
+}
+.footer-mega{
+  font-family:var(--display);font-weight:900;
+  font-size:clamp(60px,16vw,240px);
+  letter-spacing:-.05em;line-height:.85;
+  color:#fff;text-align:center;
+  -webkit-text-stroke:1px rgba(255,255,255,.7);
+  color:transparent;
+  padding:0 6vw;margin:80px 0 40px;
+  background:linear-gradient(180deg,rgba(255,255,255,.05) 0%,transparent 90%);
+  -webkit-background-clip:text;
+}
+.footer-row{
+  display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:40px;
+  padding:48px 32px 32px;max-width:1400px;margin:0 auto;
+  border-top:1px solid var(--line);
+}
+.fc h5{font-family:var(--mono);font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--magenta);margin-bottom:20px}
+.fc p,.fc a{font-family:var(--display);font-weight:300;font-size:13px;line-height:1.7;color:rgba(255,255,255,.65)}
+.fc a{display:block;padding:4px 0;transition:color .3s var(--ease),padding-left .3s var(--ease)}
+.fc a:hover{color:#fff;padding-left:8px}
+
+.footer-base{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:24px 32px;max-width:1400px;margin:0 auto;border-top:1px solid var(--line);
+  font-family:var(--mono);font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);
+}
+.footer-base .live{color:var(--magenta);display:flex;align-items:center;gap:8px}
+.footer-base .live .d{width:6px;height:6px;border-radius:50%;background:var(--magenta);box-shadow:0 0 6px var(--magenta);animation:pulse 1.6s infinite}
+
+/* ─── REVEAL HELPERS ───────────────────────────────────────────────── */
+.r-mask{display:inline-block;overflow:hidden;vertical-align:bottom}
+.r-mask>span{display:inline-block;transform:translateY(105%);will-change:transform}
+
+/* ─── TWEAK TOGGLES (classes on body) ──────────────────────────────── */
+body.no-grain .grain{display:none}
+body.no-cursor{cursor:auto}
+body.no-cursor *{cursor:auto !important}
+body.no-cursor .cursor,body.no-cursor .cursor-ring{display:none}
+body.no-marquee .marquee{display:none}
+
+/* LINEAR MARQUEE */
+.marquee{
+  position:relative;width:100%;overflow:hidden;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  padding:28px 0;background:#000;
+}
+.marquee-track{
+  display:flex;align-items:center;gap:64px;
+  width:max-content;will-change:transform;
+  font-family:var(--display);font-weight:900;font-size:clamp(40px,7vw,96px);
+  letter-spacing:-.03em;text-transform:uppercase;line-height:1;color:#fff;
+}
+.marquee-group{display:flex;align-items:center;gap:64px;flex-shrink:0}
+.marquee .outline{-webkit-text-stroke:1px rgba(255,255,255,.55);color:transparent}
+.marquee .star{width:.55em;height:.55em;color:var(--magenta);flex-shrink:0}
+body.no-hero-meta .hero-foot,body.no-hero-meta .hero-scenes{display:none}
+body.no-stats .about-stats{display:none}
+body.no-footer-mega .footer-mega{display:none}
+
+/* OUR WORK — CAROUSEL */
+.work-carousel{
+  position:relative;width:100%;
+  display:flex;align-items:center;justify-content:center;
+  padding:0 0 80px;
+}
+.work-stage{
+  position:relative;
+  width:min(1180px, calc(100% - 200px));
+  aspect-ratio:16/9;
+  background:#0a0a0b;
+  border:1px solid var(--line);
+  border-radius:6px;
+  overflow:hidden;
+  box-shadow:0 40px 80px -30px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.04);
+}
+.work-slide{
+  position:absolute;inset:0;
+  opacity:0;visibility:hidden;
+  transform:scale(1.04);
+  transition:opacity .9s var(--ease),transform 1.2s var(--ease),visibility 0s linear .9s;
+  pointer-events:none;
+}
+.work-slide.is-active{
+  opacity:1;visibility:visible;transform:scale(1);
+  transition:opacity .9s var(--ease),transform 1.2s var(--ease),visibility 0s linear 0s;
+  pointer-events:auto;
+}
+.work-slide video{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+}
+.work-slide::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(to top,rgba(0,0,0,.85) 0%,rgba(0,0,0,.1) 45%,transparent 65%);
+  pointer-events:none;
+}
+.work-slide-meta{
+  position:absolute;left:36px;right:36px;bottom:36px;z-index:2;
+  display:flex;flex-direction:column;gap:12px;color:#fff;
+  transform:translateY(20px);opacity:0;
+  transition:transform 1s var(--ease) .15s,opacity 1s var(--ease) .15s;
+}
+.work-slide.is-active .work-slide-meta{transform:translateY(0);opacity:1}
+.work-slide-meta .badge{
+  display:inline-block;width:fit-content;
+  font-family:var(--mono);font-size:10px;letter-spacing:.25em;text-transform:uppercase;
+  background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.14);padding:7px 12px;
+}
+.work-slide-meta h4{
+  font-family:var(--display);font-weight:900;
+  font-size:clamp(28px,4vw,64px);letter-spacing:-.02em;line-height:1;text-transform:uppercase;
+}
+.work-slide-meta .yr{
+  font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.55);
+  letter-spacing:.22em;text-transform:uppercase;
+}
+
+.work-nav{
+  position:absolute;top:50%;transform:translateY(-50%);z-index:5;
+  width:68px;height:68px;border-radius:50%;
+  background:rgba(10,10,11,.55);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.14);
+  color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .35s var(--ease),border-color .35s var(--ease),transform .35s var(--ease),color .35s var(--ease);
+}
+.work-nav.prev{left:32px}
+.work-nav.next{right:32px}
+.work-nav svg{width:22px;height:22px;transition:transform .4s var(--ease)}
+.work-nav:hover{background:var(--magenta);border-color:var(--magenta);color:#000;transform:translateY(-50%) scale(1.05)}
+.work-nav.prev:hover svg{transform:translateX(-3px)}
+.work-nav.next:hover svg{transform:translateX(3px)}
+.work-nav:disabled{opacity:.35;pointer-events:none}
+
+.work-carousel-foot{
+  position:absolute;left:50%;transform:translateX(-50%);
+  bottom:24px;z-index:6;
+  display:flex;align-items:center;gap:20px;
+  width:min(1180px, calc(100% - 200px));
+  padding:0 4px;
+}
+.work-counter{
+  font-family:var(--mono);font-size:11px;letter-spacing:.25em;color:#fff;
+  display:flex;gap:6px;align-items:baseline;
+}
+.work-counter-sep{color:rgba(255,255,255,.4)}
+.work-counter #workTotal{color:rgba(255,255,255,.55)}
+.work-progress{flex:1;height:1px;background:rgba(255,255,255,.18);position:relative;overflow:hidden}
+.work-progress-bar{position:absolute;left:0;top:0;height:100%;width:0%;background:var(--magenta);transition:width .7s var(--ease)}
+.work-dots{display:flex;gap:8px}
+.work-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:rgba(255,255,255,.22);
+  transition:background .3s var(--ease),transform .3s var(--ease);
+  cursor:none;
+}
+.work-dot.is-active{background:var(--magenta);transform:scale(1.3)}
+
+@media (max-width:920px){
+  .work-stage{width:calc(100% - 32px)}
+  .work-nav{width:48px;height:48px}
+  .work-nav.prev{left:8px}
+  .work-nav.next{right:8px}
+  .work-nav svg{width:18px;height:18px}
+  .work-carousel-foot{width:calc(100% - 32px);bottom:-44px}
+  .work-carousel{padding-bottom:120px}
+  .work-slide-meta{left:20px;right:20px;bottom:24px}
+}
+
+/* SOCIAL ICON ROW */
+.social-row{display:flex;gap:12px;align-items:center}
+.social-ico{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);color:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;transition:color .3s var(--ease),border-color .3s var(--ease),background .3s var(--ease),transform .3s var(--ease)}
+.social-ico svg{width:16px;height:16px}
+.social-ico:hover{color:var(--magenta);border-color:var(--magenta);transform:translateY(-2px)}
+
+/* CENTERED FOOTER BASE */
+.footer-base{justify-content:center !important;text-align:center}
+
+/* ─── RESPONSIVE QUICK PASS ────────────────────────────────────────── */
+@media (max-width:920px){
+  .nav-links{display:none}
+  .services-head{grid-template-columns:1fr}
+  .services-intro{text-align:left;max-width:none}
+  .service{grid-template-columns:50px 1fr 48px;gap:18px}
+  .service p{display:none}
+  .work-card{width:80vw}
+  .work-card:nth-child(odd){width:80vw}
+  .about-stats{grid-template-columns:repeat(2,1fr)}
+  .footer-row{grid-template-columns:1fr 1fr}
+  .hero-foot{display:none}
+  .hero-scenes{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- Grain + cursor -->
+<div class="grain"></div>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- ═══════════════════ NAV ═══════════════════ -->
+<header class="nav" id="nav">
+  <a href="#top" class="nav-brand" data-hover>PINTLABS</a>
+  <nav class="nav-links">
+    <a href="#services" class="nav-link" data-hover>What We Do</a>
+    <a href="#work" class="nav-link" data-hover>Our Work</a>
+    <a href="#about" class="nav-link" data-hover>About Us</a>
+    <a href="#contact" class="nav-link" data-hover>Contact Us</a>
+  </nav>
+</header>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<section class="hero" id="top">
+  <div class="hero-video-stage">
+    <video class="hero-video is-active" src="assets/videos/scene01.mp4" autoplay muted loop playsinline></video>
+    <video class="hero-video" src="assets/videos/scene03.mp4" autoplay muted loop playsinline></video>
+    <video class="hero-video" src="assets/videos/scene04.mp4" autoplay muted loop playsinline></video>
+    <div class="hero-tint"></div>
+    <div class="hero-vignette"></div>
+    <div class="hero-top-fade"></div>
+    <div class="hero-bottom-fade"></div>
+  </div>
+
+  <div class="hero-content">
+    <h1 class="hero-title" id="heroTitle">
+      <span class="ch">P</span><span class="ch">I</span><span class="ch">N</span><span class="ch">T</span><span class="ch">L</span><span class="ch">A</span><span class="ch">B</span><span class="ch">S</span>
+    </h1>
+    <div class="hero-italic">
+      <span class="word"><span>Stories,</span></span>
+      <span class="word"><span>AI</span></span>
+      <span class="word"><span>Engineered.</span></span>
+    </div>
+  </div>
+</section>
+
+<!-- LINEAR MARQUEE (restored, words sliding left, looping) -->
+<div class="marquee" data-marquee>
+  <div class="marquee-track" id="marqueeTrack">
+    <!-- groups duplicated by JS at runtime for seamless loop -->
+    <div class="marquee-group">
+      <span>Previz</span>
+      <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l2.5 9.5L24 12l-9.5 2.5L12 24l-2.5-9.5L0 12l9.5-2.5L12 0z"/></svg>
+      <span class="outline">Pitch&nbsp;Viz</span>
+      <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l2.5 9.5L24 12l-9.5 2.5L12 24l-2.5-9.5L0 12l9.5-2.5L12 0z"/></svg>
+      <span>AI&nbsp;Brand&nbsp;Films</span>
+      <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l2.5 9.5L24 12l-9.5 2.5L12 24l-2.5-9.5L0 12l9.5-2.5L12 0z"/></svg>
+      <span class="outline">AI&nbsp;Ads</span>
+      <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l2.5 9.5L24 12l-9.5 2.5L12 24l-2.5-9.5L0 12l9.5-2.5L12 0z"/></svg>
+      <span>Stories,&nbsp;AI&nbsp;Engineered</span>
+      <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l2.5 9.5L24 12l-9.5 2.5L12 24l-2.5-9.5L0 12l9.5-2.5L12 0z"/></svg>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ WHAT WE DO ═══════════════════ -->
+<section class="section-pad" id="services">
+  <div class="wrap">
+    <div class="eyebrow"><span class="l"></span><span>01 / What We Do</span></div>
+
+    <div class="services-head">
+      <h2 class="section-title">
+        <span class="w"><span>The</span></span>
+        <span class="w"><span class="ital">craft</span></span>
+        <br/>
+        <span class="w"><span>of</span></span>
+        <span class="w"><span>moving</span></span>
+        <span class="w"><span class="stroke">image.</span></span>
+      </h2>
+    </div>
+
+    <div class="services-list">
+      <a class="service" data-hover>
+        <span class="service-bg" style="background-image:url('assets/img/previz.png')"></span>
+        <span class="num">01 /</span>
+        <h3><span class="ital">Pre</span>viz</h3>
+        <p>Frame-by-frame storyboard rendering &amp; layout previsualization that aligns director intent before cameras roll.</p>
+        <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 19L19 5M9 5h10v10"/></svg></span>
+      </a>
+      <a class="service" data-hover>
+        <span class="service-bg" style="background-image:url('assets/img/pitch.png')"></span>
+        <span class="num">02 /</span>
+        <h3>Pitch <span class="ital">Scenes</span></h3>
+        <p>Lookbooks and high-fidelity keyframe style-frames built to establish a signature aesthetic for studio pitches.</p>
+        <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 19L19 5M9 5h10v10"/></svg></span>
+      </a>
+      <a class="service" data-hover>
+        <span class="service-bg" style="background-image:url('assets/img/brand.png')"></span>
+        <span class="num">03 /</span>
+        <h3>AI Brand <span class="ital">Films</span></h3>
+        <p>High-end brand films combining generative imagery with live-action integration into photoreal narrative.</p>
+        <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 19L19 5M9 5h10v10"/></svg></span>
+      </a>
+      <a class="service" data-hover>
+        <span class="service-bg" style="background-image:url('assets/img/postviz.png')"></span>
+        <span class="num">04 /</span>
+        <h3>AI <span class="ital">Ads</span></h3>
+        <p>Commercial ads and lifestyle vignettes engineered with synthetic simulations and temporal grading for premium campaigns.</p>
+        <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 19L19 5M9 5h10v10"/></svg></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ OUR WORK ═══════════════════ -->
+<section class="work" id="work">
+  <div class="wrap work-head">
+    <div class="eyebrow"><span class="l"></span><span>02 / Our Work</span></div>
+    <h2 class="section-title">
+      <span class="w"><span>Selected</span></span>
+      <span class="w"><span class="ital">reels.</span></span>
+    </h2>
+  </div>
+
+  <div class="work-carousel" id="workCarousel">
+    <button class="work-nav prev" id="workPrev" aria-label="Previous reel" data-hover>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M15 6l-7 6 7 6"/></svg>
+    </button>
+
+    <div class="work-stage" id="workStage">
+      <div class="work-slide is-active" data-i="0">
+        <video src="assets/videos/scene01.mp4" muted loop playsinline autoplay></video>
+        <div class="work-slide-meta">
+          <span class="badge">Storyboarding</span>
+          <h4>Layout Pre-Visualization</h4>
+          <span class="yr">'25 · Pintlabs Studio</span>
+        </div>
+      </div>
+      <div class="work-slide" data-i="1">
+        <video src="assets/videos/scene03.mp4" muted loop playsinline></video>
+        <div class="work-slide-meta">
+          <span class="badge">Post-Viz</span>
+          <h4>Theatrical Color Grading</h4>
+          <span class="yr">'25 · Pintlabs Studio</span>
+        </div>
+      </div>
+      <div class="work-slide" data-i="2">
+        <video src="assets/videos/scene04.mp4" muted loop playsinline></video>
+        <div class="work-slide-meta">
+          <span class="badge">Concept Design</span>
+          <h4>Pitch Style Frames</h4>
+          <span class="yr">'25 · Pintlabs Studio</span>
+        </div>
+      </div>
+      <div class="work-slide" data-i="3">
+        <video src="assets/videos/scene01.mp4" muted loop playsinline></video>
+        <div class="work-slide-meta">
+          <span class="badge">Brand Film</span>
+          <h4>Luxury Auto Vignette</h4>
+          <span class="yr">'26 · Pintlabs Studio</span>
+        </div>
+      </div>
+      <div class="work-slide" data-i="4">
+        <video src="assets/videos/scene03.mp4" muted loop playsinline></video>
+        <div class="work-slide-meta">
+          <span class="badge">AI Ad</span>
+          <h4>Spirit Campaign Cut</h4>
+          <span class="yr">'26 · Pintlabs Studio</span>
+        </div>
+      </div>
+      <div class="work-slide" data-i="5">
+        <video src="assets/videos/scene04.mp4" muted loop playsinline></video>
+        <div class="work-slide-meta">
+          <span class="badge">Feature</span>
+          <h4>Untitled Sci-Fi Previs</h4>
+          <span class="yr">'26 · Pintlabs Studio</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="work-nav next" id="workNext" aria-label="Next reel" data-hover>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M9 6l7 6-7 6"/></svg>
+    </button>
+
+    <div class="work-carousel-foot">
+      <div class="work-counter"><span id="workCurrent">01</span><span class="work-counter-sep">/</span><span id="workTotal">06</span></div>
+      <div class="work-progress"><span class="work-progress-bar" id="workProgressBar"></span></div>
+      <div class="work-dots" id="workDots"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ ABOUT ═══════════════════ -->
+<section class="about" id="about">
+  <div class="about-wrap">
+    <div class="eyebrow"><span class="l"></span><span>03 / About Us</span></div>
+
+    <h2 class="about-h">
+      <span class="r-mask"><span>A</span></span>
+      <span class="r-mask"><span class="ital">cinematic</span></span>
+      <span class="r-mask"><span>practice,</span></span>
+      <br/>
+      <span class="r-mask"><span>engineered</span></span>
+      <span class="r-mask"><span>for</span></span>
+      <span class="r-mask"><span class="stroke">tomorrow.</span></span>
+    </h2>
+
+    <p class="about-body" id="aboutBody">
+      <!-- words injected by JS for scroll-lit effect -->
+    </p>
+
+    <div class="about-stats">
+      <div class="stat"><div class="n" data-count="142">000</div><div class="l">Reels Delivered</div></div>
+      <div class="stat"><div class="n" data-count="28">00</div><div class="l">Studio Partners</div></div>
+      <div class="stat"><div class="n" data-count="4">0</div><div class="l">Continents Shipped</div></div>
+      <div class="stat"><div class="n" data-count="100" data-suffix="%">000</div><div class="l">In-House Pipeline</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CONTACT ═══════════════════ -->
+<section class="contact" id="contact">
+  <div class="wrap">
+    <div class="contact-grid">
+      <div>
+        <div class="contact-direct">
+          <a class="contact-direct-link" href="mailto:hello@pintlabs.in" data-hover>
+            <span class="k">Write to us</span>
+            <span class="v">hello@pintlabs.in</span>
+            <svg class="contact-direct-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 19L19 5M9 5h10v10"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <form class="form" id="contactForm">
+        <div class="field"><label>Name</label><input type="text" placeholder="Your name" required/></div>
+        <div class="field"><label>E-mail</label><input type="email" placeholder="you@studio.com" required/></div>
+        <div class="field"><label>Project type</label><input type="text" placeholder="Previz · Pitch · Brand film · Ad" required/></div>
+        <div class="field"><label>Brief</label><textarea rows="4" placeholder="Tell us the shape of the thing…" required></textarea></div>
+        <button class="submit" type="submit" data-hover>
+          Send directive
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 19L19 5M9 5h10v10"/></svg>
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer class="footer">
+  <div class="footer-mega">PINTLABS<sup style="font-size:.25em;vertical-align:super;-webkit-text-stroke:1px var(--magenta);color:transparent">®</sup></div>
+  <div class="footer-row">
+    <div class="fc">
+      <h5>Our Location</h5>
+      <p>Uptown Cyberabad, 1C, 100 Feet Rd,<br/>above Yellow Jersey, Chanda Naik Nagar,<br/>Madhapur, Hyderabad, Telangana 500081</p>
+    </div>
+    <div class="fc">
+      <h5>Sitemap</h5>
+      <a href="#services">What We Do</a>
+      <a href="#work">Our Work</a>
+      <a href="#about">About Us</a>
+      <a href="#contact">Contact Us</a>
+    </div>
+    <div class="fc">
+      <h5>Connect</h5>
+      <div class="social-row">
+        <a href="#" class="social-ico" aria-label="Instagram">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
+        </a>
+        <a href="#" class="social-ico" aria-label="YouTube">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23 7.2s-.2-1.6-.9-2.3c-.8-.9-1.8-.9-2.2-1C16.7 3.5 12 3.5 12 3.5h0s-4.7 0-7.9.4c-.4 0-1.4.1-2.2 1C1.2 5.6 1 7.2 1 7.2S.8 9 .8 10.8v1.7C.8 14.3 1 16.1 1 16.1s.2 1.6.9 2.3c.8.9 1.9.8 2.4.9 1.7.2 7.7.3 7.7.3s4.7 0 7.9-.4c.4 0 1.4-.1 2.2-1 .7-.7.9-2.3.9-2.3s.2-1.8.2-3.6v-1.7C23.2 9 23 7.2 23 7.2zM9.7 14.3V8l6 3.2-6 3.1z"/></svg>
+        </a>
+        <a href="#" class="social-ico" aria-label="LinkedIn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5C3.9 3 3 3.9 3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM8.3 18.3H5.7V9.7h2.6v8.6zM7 8.5C6.2 8.5 5.5 7.8 5.5 7s.7-1.5 1.5-1.5S8.5 6.2 8.5 7 7.8 8.5 7 8.5zm11.3 9.8h-2.6v-4.2c0-1 0-2.3-1.4-2.3s-1.6 1.1-1.6 2.2v4.3h-2.6V9.7h2.5v1.2h0c.4-.7 1.2-1.4 2.5-1.4 2.7 0 3.2 1.8 3.2 4v4.8z"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="fc">
+      <h5>Get in touch</h5>
+      <a href="#">hello@pintlabs.in</a>
+      <a href="#">careers@pintlabs.in</a>
+    </div>
+  </div>
+  <div class="footer-base">
+    <span>© 2026 Pintlabs. All rights reserved.</span>
+  </div>
+</footer>
+
+<script>
+/* ════════════════════════════════════════════════════════════════════
+   SMOOTH SCROLL (Lenis) + GSAP ScrollTrigger sync
+   ════════════════════════════════════════════════════════════════════ */
+gsap.registerPlugin(ScrollTrigger);
+
+const lenis = new Lenis({
+  duration: 1.2,
+  easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+  smoothWheel: true,
+});
+lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add(t => lenis.raf(t * 1000));
+gsap.ticker.lagSmoothing(0);
+
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click', e=>{
+    const id = a.getAttribute('href');
+    if(id.length>1 && document.querySelector(id)){
+      e.preventDefault();
+      lenis.scrollTo(document.querySelector(id), {offset:-40});
+    }
+  });
+});
+
+/* ════════════════════ CURSOR ════════════════════ */
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx=window.innerWidth/2, my=window.innerHeight/2, rx=mx, ry=my;
+window.addEventListener('mousemove', e=>{ mx=e.clientX; my=e.clientY; cur.style.transform=`translate(${mx}px,${my}px) translate(-50%,-50%)`; });
+function ringLoop(){ rx+=(mx-rx)*.18; ry+=(my-ry)*.18; ring.style.transform=`translate(${rx}px,${ry}px) translate(-50%,-50%)`; requestAnimationFrame(ringLoop); }
+ringLoop();
+document.querySelectorAll('[data-hover]').forEach(el=>{
+  el.addEventListener('mouseenter', ()=>{ cur.classList.add('is-hover'); ring.style.opacity=0; });
+  el.addEventListener('mouseleave', ()=>{ cur.classList.remove('is-hover'); ring.style.opacity=1; });
+});
+
+/* ════════════════════ CLOCK ════════════════════ */
+function tickClock(){ /* clock removed */ }
+
+/* ════════════════════ HERO INTRO ════════════════════ */
+const heroTl = gsap.timeline({defaults:{ease:'expo.out'}});
+heroTl
+  .fromTo('#heroTitle .ch',{y:'110%'},{y:'0%',duration:1.2,stagger:.05},.15)
+  .fromTo('.hero-italic .word span',{y:'110%'},{y:'0%',duration:1,stagger:.08},.55)
+  .fromTo('.nav',{opacity:0,y:14},{opacity:1,y:0,duration:.8},.9);
+
+/* ════════════════════ HERO VIDEO CYCLER ════════════════════ */
+const heroVids = document.querySelectorAll('.hero-video');
+let vIdx=0;
+setInterval(()=>{
+  heroVids[vIdx].classList.remove('is-active');
+  vIdx = (vIdx+1) % heroVids.length;
+  heroVids[vIdx].classList.add('is-active');
+}, 5200);
+
+/* ════════════════════ HERO PARALLAX ════════════════════ */
+window.__heroParallax = [];
+window.__heroParallax.push(gsap.to('.hero-video-stage', {
+  yPercent:18, scale:1.05, ease:'none',
+  scrollTrigger:{ trigger:'.hero', start:'top top', end:'bottom top', scrub:true }
+}).scrollTrigger);
+window.__heroParallax.push(gsap.to('.hero-content',{
+  yPercent:-30, opacity:.2,
+  scrollTrigger:{ trigger:'.hero', start:'top top', end:'bottom top', scrub:true }
+}).scrollTrigger);
+
+/* ════════════════════ MARQUEE LOOP ════════════════════ */
+/* LINEAR MARQUEE — GSAP loop */
+const marqueeTrack = document.getElementById('marqueeTrack');
+let __marqueeTween = null;
+if(marqueeTrack){
+  // Clone the inner group enough times to ensure it always fills viewport + spare
+  const group = marqueeTrack.querySelector('.marquee-group');
+  const need = Math.ceil((window.innerWidth * 2) / Math.max(group.offsetWidth, 200)) + 1;
+  for(let i=0;i<need;i++){ marqueeTrack.appendChild(group.cloneNode(true)); }
+  // Animate by translating one group-width to the left, then reset (infinite seamless)
+  const groupWidth = group.offsetWidth + 64; /* + gap */
+  gsap.set(marqueeTrack, { x: 0 });
+  __marqueeTween = gsap.to(marqueeTrack, {
+    x: -groupWidth, duration: 28, ease:'none', repeat:-1,
+    modifiers:{ x: gsap.utils.unitize(v => parseFloat(v) % -groupWidth) }
+  });
+}
+window.__marqueeTweens = [{
+  duration(v){ if(__marqueeTween) __marqueeTween.duration(v); }
+}];
+
+/* ════════════════════ SECTION TITLES (mask reveal) ════════════════════ */
+gsap.utils.toArray('.section-title, .about-h, .contact-h').forEach(t=>{
+  const targets = t.querySelectorAll('.w span, .r-mask>span');
+  gsap.fromTo(targets, {y:'110%'}, {
+    y:'0%', duration:1.1, stagger:.07, ease:'expo.out',
+    scrollTrigger:{ trigger:t, start:'top 85%' }
+  });
+});
+
+gsap.utils.toArray('.eyebrow').forEach(e=>{
+  gsap.fromTo(e,{opacity:0,y:12},{opacity:1,y:0,duration:.8,ease:'expo.out',scrollTrigger:{trigger:e,start:'top 90%'}});
+});
+
+/* ════════════════════ SERVICES — row reveals ════════════════════ */
+gsap.utils.toArray('.service').forEach((s,i)=>{
+  gsap.fromTo(s,{opacity:0,y:30},{opacity:1,y:0,duration:.9,ease:'expo.out',scrollTrigger:{trigger:s,start:'top 88%'}});
+});
+
+/* ════════════════════ WORK — horizontal scroll pinned ════════════════════ */
+/* ════════════════════ WORK — CAROUSEL ════════════════════ */
+const workSlides   = gsap.utils.toArray('.work-slide');
+const workPrevBtn  = document.getElementById('workPrev');
+const workNextBtn  = document.getElementById('workNext');
+const workCurEl    = document.getElementById('workCurrent');
+const workTotalEl  = document.getElementById('workTotal');
+const workProgBar  = document.getElementById('workProgressBar');
+const workDotsWrap = document.getElementById('workDots');
+let workIdx = 0;
+const workCount = workSlides.length;
+
+// build dots
+if(workDotsWrap){
+  workSlides.forEach((_,i)=>{
+    const d = document.createElement('button');
+    d.className = 'work-dot' + (i===0 ? ' is-active' : '');
+    d.setAttribute('aria-label', `Go to reel ${i+1}`);
+    d.dataset.i = i;
+    d.addEventListener('click', ()=> goToWork(i));
+    workDotsWrap.appendChild(d);
+  });
+}
+if(workTotalEl) workTotalEl.textContent = String(workCount).padStart(2,'0');
+
+function updateWorkUI(){
+  workSlides.forEach((s,i)=>{
+    const active = i === workIdx;
+    s.classList.toggle('is-active', active);
+    const v = s.querySelector('video');
+    if(v){
+      if(active){
+        v.currentTime = 0;
+        v.play().catch(()=>{});
+      } else {
+        v.pause();
+      }
+    }
+  });
+  if(workCurEl) workCurEl.textContent = String(workIdx+1).padStart(2,'0');
+  if(workProgBar) workProgBar.style.width = `${((workIdx+1)/workCount)*100}%`;
+  if(workDotsWrap){
+    workDotsWrap.querySelectorAll('.work-dot').forEach((d,i)=> d.classList.toggle('is-active', i===workIdx));
+  }
+}
+function goToWork(i){
+  workIdx = ((i % workCount) + workCount) % workCount;
+  updateWorkUI();
+}
+workPrevBtn?.addEventListener('click', ()=> goToWork(workIdx - 1));
+workNextBtn?.addEventListener('click', ()=> goToWork(workIdx + 1));
+
+// keyboard nav when carousel in view
+let workInView = false;
+if(workSlides.length){
+  ScrollTrigger.create({
+    trigger: '.work-carousel', start:'top 70%', end:'bottom 30%',
+    onEnter:()=> workInView = true,
+    onLeave:()=> workInView = false,
+    onEnterBack:()=> workInView = true,
+    onLeaveBack:()=> workInView = false
+  });
+  window.addEventListener('keydown', e=>{
+    if(!workInView) return;
+    if(e.key === 'ArrowLeft') goToWork(workIdx - 1);
+    if(e.key === 'ArrowRight') goToWork(workIdx + 1);
+  });
+}
+// reveal-in animation on first show
+gsap.fromTo('.work-carousel',{opacity:0,y:40},{opacity:1,y:0,duration:1,ease:'expo.out',scrollTrigger:{trigger:'.work-carousel',start:'top 80%'}});
+updateWorkUI();
+window.addEventListener('resize', ()=>ScrollTrigger.refresh());
+
+/* ════════════════════ ABOUT — scroll-lit paragraph ════════════════════ */
+const aboutText = "Pintlabs is a boundary-pushing media production and visual planning studio crafting cinematic experiences, high-fidelity storyboard previsualizations, and meticulous post finishes for feature films, brand campaigns and luxury advertising. We unify veteran production protocols with state-of-the-art generative craftsmanship — translating raw written material into arresting, theatrical-grade spectacles built for a visual-first audience.";
+const italWords = new Set(['cinematic','generative','theatrical-grade']);
+const aboutEl = document.getElementById('aboutBody');
+aboutEl.innerHTML = aboutText.split(/\s+/).map(w=>{
+  const clean = w.replace(/[^a-z\-]/gi,'').toLowerCase();
+  const cls = italWords.has(clean) ? 'word ital' : 'word';
+  return `<span class="${cls}">${w}</span>`;
+}).join(' ');
+const words = aboutEl.querySelectorAll('.word');
+ScrollTrigger.create({
+  trigger: aboutEl, start: 'top 80%', end: 'bottom 40%', scrub: true,
+  onUpdate: self=>{
+    const cut = Math.floor(self.progress * words.length);
+    words.forEach((w,i)=> w.classList.toggle('lit', i<=cut));
+  }
+});
+
+/* ════════════════════ ABOUT — counters ════════════════════ */
+document.querySelectorAll('.stat .n').forEach(el=>{
+  const target = +el.dataset.count;
+  const suffix = el.dataset.suffix || '';
+  const obj = {v:0};
+  ScrollTrigger.create({
+    trigger: el, start:'top 88%',
+    onEnter: ()=> gsap.to(obj,{v:target,duration:1.6,ease:'expo.out',onUpdate:()=>{ el.textContent = Math.round(obj.v).toString().padStart(String(target).length,'0')+suffix; }})
+  });
+});
+
+/* ════════════════════ CONTACT — form submit ════════════════════ */
+const form = document.getElementById('contactForm');
+form.addEventListener('submit', e=>{
+  e.preventDefault();
+  const btn = form.querySelector('.submit');
+  btn.textContent = 'Transmitting…';
+  setTimeout(()=>{
+    btn.innerHTML = `Received — we'll reply within 24h <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:14px;height:14px"><path d="M4 12l5 5L20 6"/></svg>`;
+    btn.style.background = 'var(--magenta)';
+    form.querySelectorAll('input,textarea').forEach(i=>i.value='');
+  }, 900);
+});
+
+/* ════════════════════ FOOTER — mega text scroll-grow ════════════════════ */
+gsap.fromTo('.footer-mega',{scale:.85,opacity:.4},{
+  scale:1,opacity:1,ease:'none',
+  scrollTrigger:{ trigger:'.footer', start:'top bottom', end:'top 30%', scrub:true }
+});
+
+ScrollTrigger.refresh();
+</script>
+
+<!-- ═══════════════════ TWEAKS PANEL ═══════════════════ -->
+<div id="tweaks-root"></div>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel">
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "showGrain": true,
+  "customCursor": true,
+  "showMarquees": true,
+  "showHeroMeta": true,
+  "showStats": true,
+  "showFooterMega": true,
+  "heroParallax": true,
+  "accent": "#d354ae",
+  "marqueeSpeed": 28
+}/*EDITMODE-END*/;
+
+function applyTweaks(t){
+  document.body.classList.toggle('no-grain', !t.showGrain);
+  document.body.classList.toggle('no-cursor', !t.customCursor);
+  document.body.classList.toggle('no-marquee', !t.showMarquees);
+  document.body.classList.toggle('no-hero-meta', !t.showHeroMeta);
+  document.body.classList.toggle('no-stats', !t.showStats);
+  document.body.classList.toggle('no-footer-mega', !t.showFooterMega);
+  document.documentElement.style.setProperty('--magenta', t.accent);
+  // Re-target marquee tween speed
+  if(window.__marqueeTweens){
+    window.__marqueeTweens.forEach(tw=>tw.duration(t.marqueeSpeed));
+  }
+  // Toggle hero parallax
+  if(window.__heroParallax){
+    window.__heroParallax.forEach(st=>{
+      if(t.heroParallax){ st.enable(); } else { st.disable(true); }
+    });
+  }
+  // Force layout refresh after toggles change DOM heights
+  if(window.ScrollTrigger) ScrollTrigger.refresh();
+}
+
+function TweaksApp(){
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  React.useEffect(()=>{ applyTweaks(t); }, [t]);
+  return (
+    <TweaksPanel title="Pintlabs · Tweaks">
+      <TweakSection label="Effects" />
+      <TweakToggle label="Film grain"     value={t.showGrain}     onChange={v=>setTweak('showGrain', v)} />
+      <TweakToggle label="Custom cursor"  value={t.customCursor}  onChange={v=>setTweak('customCursor', v)} />
+      <TweakToggle label="Hero parallax"  value={t.heroParallax}  onChange={v=>setTweak('heroParallax', v)} />
+
+      <TweakSection label="Sections" />
+      <TweakToggle label="Marquee tickers" value={t.showMarquees}    onChange={v=>setTweak('showMarquees', v)} />
+      <TweakToggle label="Hero overlay info" value={t.showHeroMeta}  onChange={v=>setTweak('showHeroMeta', v)} />
+      <TweakToggle label="About stats row" value={t.showStats}       onChange={v=>setTweak('showStats', v)} />
+      <TweakToggle label="Giant footer wordmark" value={t.showFooterMega} onChange={v=>setTweak('showFooterMega', v)} />
+
+      <TweakSection label="Style" />
+      <TweakColor label="Accent" value={t.accent}
+        options={['#d354ae','#ff4d2e','#f5c443','#8ad7ff','#ffffff']}
+        onChange={v=>setTweak('accent', v)} />
+      <TweakSlider label="Marquee duration" value={t.marqueeSpeed} min={8} max={60} step={1} unit="s"
+        onChange={v=>setTweak('marqueeSpeed', v)} />
+    </TweaksPanel>
+  );
+}
+
+// Expose hooks for the imperative GSAP code above so we can disable parallax + change speeds
+window.__marqueeTweens = window.__marqueeTweens || [];
+window.__heroParallax  = window.__heroParallax  || [];
+
+ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<TweaksApp />);
+</script>
+
+</body>
+</html>
